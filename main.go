@@ -26,13 +26,9 @@ type myapp struct {
 }
 
 func (a *myapp) genRandRect() *core.QRectF {
-	rand.Seed(time.Now().UnixNano())
 	x := rand.Intn(a.wid.Width()-1) + 1
-	rand.Seed(time.Now().UnixNano())
 	y := rand.Intn(a.wid.Height()-1) + 1
-	rand.Seed(time.Now().UnixNano())
 	width := int(a.wid.Width()) / (rand.Intn(64) + 1)
-	rand.Seed(time.Now().UnixNano())
 	height := int(a.wid.Height()) / (rand.Intn(64) + 1)
 
 	rand.Seed(time.Now().UnixNano())
@@ -64,18 +60,25 @@ func main() {
 		a.wid.Update()
 	})
 
+	rand.Seed(time.Now().UnixNano())
+
 	// Draw random rectangle
 	wid.ConnectPaintEvent(func(e *gui.QPaintEvent) {
 		p := gui.NewQPainter2(wid)
+
+		/* Paint process 
+		  This process is very fast and commenting out doesn't change update performance
+		*/
 		p.FillRect4(
 			a.genRandRect(),
 			gui.NewQColor3(
-				int(int(255)%(rand.Intn(254)+1)),
-				int(int(200)%(rand.Intn(254)+1)),
-				int(int(100)%(rand.Intn(254)+1)),
+				rand.Intn(255),
+				rand.Intn(255),
+				rand.Intn(255),
 				255,
 			),
 		)
+
 		p.DestroyQPainter()
 	})
 	win.ConnectKeyPressEvent(func(e *gui.QKeyEvent) {
@@ -83,7 +86,7 @@ func main() {
 		a.signal.RedrawSignal()
 	})
 
-	// Notify key repeat rate
+	// Notify the rate of key repeat
 	go func() {
 		for _ = range time.Tick(1000 * time.Millisecond) {
 			fmt.Println(a.keycount)
