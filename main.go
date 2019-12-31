@@ -21,11 +21,12 @@ type myapp struct {
 	wid *widgets.QWidget
 
 	signal   *appSignal
-	queue    chan bool
+	queue    chan *core.QRect
+	rect     *core.QRect
 	keycount int
 }
 
-func (a *myapp) genRandRect() *core.QRectF {
+func (a *myapp) genRandRect() *core.QRect {
 	x := rand.Intn(a.wid.Width()-1) + 1
 	y := rand.Intn(a.wid.Height()-1) + 1
 	width := int(a.wid.Width()) / (rand.Intn(64) + 1)
@@ -33,11 +34,11 @@ func (a *myapp) genRandRect() *core.QRectF {
 
 	rand.Seed(time.Now().UnixNano())
 
-	return core.NewQRectF4(
-		float64(x),
-		float64(y),
-		float64(width),
-		float64(height),
+	return core.NewQRect4(
+		x,
+		y,
+		width,
+		height,
 	)
 }
 
@@ -52,25 +53,31 @@ func main() {
 		win:    win,
 		wid:    wid,
 		signal: NewAppSignal(nil),
-		queue:  make(chan bool, 1000),
+		queue:  make(chan *core.QRect, 400),
 	}
 	a.signal.ConnectRedrawSignal(func() {
-		<-a.queue
+		a.rect = <-a.queue
 		a.keycount++
-		a.wid.Update()
+		// a.wid.Update()
+		// a.wid.Update3(rect)
+		a.wid.Update3(core.NewQRect4(0, 0, a.wid.Width()/2, a.wid.Height()/2))
+		a.wid.Update3(core.NewQRect4(a.wid.Width()/2, a.wid.Height()/2, a.wid.Width(), a.wid.Height()))
 	})
 
 	rand.Seed(time.Now().UnixNano())
 
 	// Draw random rectangle
 	wid.ConnectPaintEvent(func(e *gui.QPaintEvent) {
+		if a.rect == nil {
+			return
+		}
 		p := gui.NewQPainter2(wid)
 
 		/* Paint process 
 		  This process is very fast and commenting out doesn't change update performance
 		*/
-		p.FillRect4(
-			a.genRandRect(),
+		p.FillRect6(
+			a.rect,
 			gui.NewQColor3(
 				rand.Intn(255),
 				rand.Intn(255),
@@ -82,7 +89,7 @@ func main() {
 		p.DestroyQPainter()
 	})
 	win.ConnectKeyPressEvent(func(e *gui.QKeyEvent) {
-		a.queue <- true
+		a.queue <- a.genRandRect()
 		a.signal.RedrawSignal()
 	})
 
