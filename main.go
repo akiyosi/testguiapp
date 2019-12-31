@@ -58,10 +58,8 @@ func main() {
 	a.signal.ConnectRedrawSignal(func() {
 		a.rect = <-a.queue
 		a.keycount++
-		// a.wid.Update()
-		// a.wid.Update3(rect)
-		a.wid.Update3(core.NewQRect4(0, 0, a.wid.Width()/2, a.wid.Height()/2))
-		a.wid.Update3(core.NewQRect4(a.wid.Width()/2, a.wid.Height()/2, a.wid.Width(), a.wid.Height()))
+		a.wid.Update()
+		// a.wid.Update3(a.rect)
 	})
 
 	rand.Seed(time.Now().UnixNano())
